@@ -1,12 +1,18 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '../generated/prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { Pool } from 'pg';
 import bcrypt from 'bcryptjs';
 import jwt, { Secret, SignOptions } from 'jsonwebtoken';
 import { RegisterInput, LoginInput, AuthResponse } from '../types/auth.types';
 
-const prisma: PrismaClient = new (PrismaClient as any)();
+// Create PostgreSQL connection pool
+const connectionString = process.env.DATABASE_URL;
+const pool = new Pool({ connectionString });
+const adapter = new PrismaPg(pool);
 
-// Generate JWT token
+const prisma = new PrismaClient({ adapter });
+
 // Generate JWT token
 const generateToken = (userId: string, email: string): string => {
   const secret = process.env.JWT_SECRET as Secret;
@@ -14,7 +20,7 @@ const generateToken = (userId: string, email: string): string => {
     throw new Error('JWT_SECRET is not defined');
   }
 
-  const expiresIn = process.env.JWT_EXPIRES_IN || '7d';
+  const expiresIn = process.env.JWT_EXPIRES_IN || '1d';
 
   return jwt.sign(
     { userId, email },
