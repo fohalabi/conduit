@@ -9,7 +9,7 @@ export interface LoginInput {
     password: string;
 }
 
-export interface JwtPayload {
+export interface JWTPayload {
     userId: string;
     email: string;
 }
