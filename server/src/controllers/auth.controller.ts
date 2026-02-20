@@ -1,17 +1,8 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '../generated/prisma/client';
-import { PrismaPg } from '@prisma/adapter-pg';
-import { Pool } from 'pg';
+import prisma from '../lib/prisma';
 import bcrypt from 'bcryptjs';
 import jwt, { Secret, SignOptions } from 'jsonwebtoken';
 import { RegisterInput, LoginInput, AuthResponse } from '../types/auth.types';
-
-// Create PostgreSQL connection pool
-const connectionString = process.env.DATABASE_URL;
-const pool = new Pool({ connectionString });
-const adapter = new PrismaPg(pool);
-
-const prisma = new PrismaClient({ adapter });
 
 // Generate JWT token
 const generateToken = (userId: string, email: string): string => {
