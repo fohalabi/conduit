@@ -9,7 +9,7 @@ import { Pool } from 'pg';
 // Now create pool AFTER env is loaded
 const pool = new Pool({
   host: 'localhost',
-  port: 5432,
+  port: 5433,
   database: 'conduit',
   user: 'conduit',
   password: 'conduit_password',
