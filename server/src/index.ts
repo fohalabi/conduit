@@ -2,6 +2,7 @@ import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.routes';
+import requestRoutes from './routes/request.routes';
 
 // Load environment variables
 dotenv.config();
@@ -19,6 +20,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/requests', requestRoutes);
 
 // Health check endpoint
 app.get('/health', (req: Request, res: Response) => {
@@ -33,7 +35,11 @@ app.get('/health', (req: Request, res: Response) => {
 app.get('/', (req: Request, res: Response) => {
   res.json({
     message: 'Conduit API Server',
-    version: '1.0.0'
+    version: '1.0.0',
+    endpoint: {
+      auth: '/api/auth',
+      requests: '/api/requests',
+    }
   });
 });
 

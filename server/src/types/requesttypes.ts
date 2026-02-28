@@ -3,7 +3,7 @@ export interface Header {
     value: string;
 }
 
-export interface CreateRequestBody {
+export interface CreateRequestInput {
     name: string;
     method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS';
     url: string;
