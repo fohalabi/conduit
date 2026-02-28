@@ -55,10 +55,10 @@ export const getRequests = async (req: Request, res: Response): Promise<void> =>
 export const getRequestById = async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.userId!;
-    const { id } = req.params;
+    const requestId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
 
     const request = await prisma.request.findFirst({
-      where: { id, userId },
+      where: { id: requestId, userId },
     });
 
     if (!request) {
@@ -77,12 +77,12 @@ export const getRequestById = async (req: Request, res: Response): Promise<void>
 export const updateRequest = async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.userId!;
-    const { id } = req.params;
+    const requestId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
     const { name, method, url, headers, body }: CreateRequestInput = req.body;
 
     // Check if request exists and belongs to user
     const existingRequest = await prisma.request.findFirst({
-      where: { id, userId },
+      where: { id: requestId, userId },
     });
 
     if (!existingRequest) {
@@ -92,7 +92,7 @@ export const updateRequest = async (req: Request, res: Response): Promise<void> 
 
     // Update request
     const updatedRequest = await prisma.request.update({
-      where: { id },
+      where: { id: requestId },
       data: {
         name,
         method,
@@ -113,11 +113,11 @@ export const updateRequest = async (req: Request, res: Response): Promise<void> 
 export const deleteRequest = async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.userId!;
-    const { id } = req.params;
+    const requestId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
 
     // Check if request exists and belongs to user
     const existingRequest = await prisma.request.findFirst({
-      where: { id, userId },
+      where: { id: requestId, userId },
     });
 
     if (!existingRequest) {
@@ -127,7 +127,7 @@ export const deleteRequest = async (req: Request, res: Response): Promise<void> 
 
     // Delete request (history will cascade delete)
     await prisma.request.delete({
-      where: { id },
+      where: { id: requestId },
     });
 
     res.status(200).json({ message: 'Request deleted successfully' });
@@ -140,7 +140,6 @@ export const deleteRequest = async (req: Request, res: Response): Promise<void> 
 // Execute a request (without saving)
 export const executeRequest = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = req.userId!;
     const { method, url, headers, body }: ExecuteRequestInput = req.body;
 
     // Validate input
@@ -167,11 +166,11 @@ export const executeRequest = async (req: Request, res: Response): Promise<void>
 export const executeSavedRequest = async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.userId!;
-    const { id } = req.params;
+    const requestId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
 
     // Get request
     const request = await prisma.request.findFirst({
-      where: { id, userId },
+      where: { id: requestId, userId },
     });
 
     if (!request) {
@@ -214,13 +213,15 @@ export const executeSavedRequest = async (req: Request, res: Response): Promise<
 
       res.status(200).json(result);
     } catch (error: any) {
-      // Save failed request to history
+      // Save failed request to history (with null statusCode and responseTime)
       await prisma.history.create({
         data: {
           requestId: request.id,
           userId,
           method: request.method,
           url: request.url,
+          statusCode: null,
+          responseTime: null,
           error: error.message,
           requestData: {
             method: request.method,
@@ -228,6 +229,7 @@ export const executeSavedRequest = async (req: Request, res: Response): Promise<
             headers: request.headers,
             body: request.body,
           },
+          responseData: null,
         },
       });
 
@@ -247,11 +249,11 @@ export const executeSavedRequest = async (req: Request, res: Response): Promise<
 export const getRequestHistory = async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.userId!;
-    const { id } = req.params;
+    const requestId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
 
     // Verify request belongs to user
     const request = await prisma.request.findFirst({
-      where: { id, userId },
+      where: { id: requestId, userId },
     });
 
     if (!request) {
@@ -261,7 +263,7 @@ export const getRequestHistory = async (req: Request, res: Response): Promise<vo
 
     // Get history
     const history = await prisma.history.findMany({
-      where: { requestId: id },
+      where: { requestId },
       orderBy: { createdAt: 'desc' },
       take: 50, // Limit to last 50 executions
     });
